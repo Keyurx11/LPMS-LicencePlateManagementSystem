@@ -87,35 +87,23 @@ public class LicensePlateController {
         // Convert the input to uppercase
         String input = plateNumber.toUpperCase();
 
-        // Convert the input to a regex pattern with wildcard characters
-        String regexPattern = input.replaceAll("\\*", "\\\\w");
+        // Check if the input contains a wildcard character
+        if (licensePlateService.containsWildcard(input)) {
+            // Generate random license plates based on the search pattern
+            List<Map<String, Object>> response = licensePlateService.generateRandomLicensePlates(input, 10);
+            return ResponseEntity.ok(response);
+        } else {
+            // Generate information about the license plate for the response
+            Map<String, Object> plateInfo = licensePlateService.generateLicensePlateResponse(input);
 
-        // List to store the response license plates
-        List<Map<String, Object>> response = new ArrayList<>();
-
-        int numGenerated = 0;
-        while (numGenerated < 10) {
-            // Generate a random string with the same length as the input
-            String randomString = licensePlateService.generateRandomString(input.length());
-
-            // Check if a license plate already exists with this number
-            LicensePlate licensePlate = licensePlateService.getLicensePlateByNumber(randomString);
-
-            // If the license plate doesn't exist, add it to the response list
-            if (licensePlate == null) {
-                // Generate information about the license plate for the response
-                Map<String, Object> plateInfo = licensePlateService.generateLicensePlateResponse(randomString);
-
-                // If the license plate is available, add it to the response list and increment the counter
-                if (plateInfo.containsKey("status") && plateInfo.get("status").equals("available")) {
-                    response.add(plateInfo);
-                    numGenerated++;
-                }
+            // If the license plate is not available, return an error message
+            if (plateInfo.containsKey("status") && !plateInfo.get("status").equals("available")) {
+                return ResponseEntity.badRequest().body("The provided license plate is not available for purchase.");
             }
-        }
 
-        // Return the list of generated license plates
-        return ResponseEntity.ok(response);
+            // Return the information about the available license plate
+            return ResponseEntity.ok(plateInfo);
+        }
     }
 
 }

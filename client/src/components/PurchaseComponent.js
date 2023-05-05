@@ -1,8 +1,20 @@
-import React, {useState} from 'react';
+// This is a React functional component for purchasing a license plate
+// It uses React hooks (useState) to manage component state and axios to make API calls
+// It also uses the useLocation hook from react-router-dom to retrieve query parameters
+
+import React, { useState } from 'react';
 import axios from 'axios';
+import { useLocation } from 'react-router-dom';
+
+function useQuery() {
+    return new URLSearchParams(useLocation().search);
+}
 
 function PurchaseComponent() {
-    const [plateNumber, setPlateNumber] = useState('');
+    const query = useQuery();
+    const plateNumber = query.get('plateNumber');
+    const price = query.get('price');
+
     const [buyerName, setBuyerName] = useState('');
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
@@ -10,8 +22,6 @@ function PurchaseComponent() {
     const [vehicleMake, setVehicleMake] = useState('');
     const [vehicleModel, setVehicleModel] = useState('');
     const [vehicleType, setVehicleType] = useState('');
-    const [price, setPrice] = useState('');
-
     const [errors, setErrors] = useState({});
 
     const handleSubmit = (event) => {
@@ -25,36 +35,6 @@ function PurchaseComponent() {
 
         if (buyerName.trim() === '') {
             errorsFound.buyerName = 'Buyer name is required.';
-        }
-
-        if (lastName.trim() === '') {
-            errorsFound.lastName = 'Last name is required.';
-        }
-
-        if (email.trim() === '') {
-            errorsFound.email = 'Email is required.';
-        }
-
-        if (phone.trim() === '') {
-            errorsFound.phone = 'Phone number is required.';
-        }
-
-        if (vehicleMake.trim() === '') {
-            errorsFound.vehicleMake = 'Vehicle make is required.';
-        }
-
-        if (vehicleModel.trim() === '') {
-            errorsFound.vehicleModel = 'Vehicle model is required.';
-        }
-
-        if (vehicleType.trim() === '') {
-            errorsFound.vehicleType = 'Vehicle type is required.';
-        }
-
-        if (price.trim() === '') {
-            errorsFound.price = 'Price is required.';
-        } else if (isNaN(price)) {
-            errorsFound.price = 'Price must be a number.';
         }
 
         if (Object.keys(errorsFound).length > 0) {
@@ -76,7 +56,6 @@ function PurchaseComponent() {
         })
             .then((response) => {
                 alert(response.data);
-                setPlateNumber('');
                 setBuyerName('');
                 setLastName('');
                 setEmail('');
@@ -84,7 +63,6 @@ function PurchaseComponent() {
                 setVehicleMake('');
                 setVehicleModel('');
                 setVehicleType('');
-                setPrice('');
                 setErrors({});
             })
             .catch((error) => {
@@ -97,12 +75,16 @@ function PurchaseComponent() {
             <form onSubmit={handleSubmit}>
                 <div>
                     <label htmlFor="plateNumber">Plate Number:</label>
-                    <input type="text" id="plateNumber" name="plateNumber" value={plateNumber}
-                           onChange={event => setPlateNumber(event.target.value)}/>
+                    <input type="text" id="plateNumber" name="plateNumber" value={plateNumber} readOnly />
                     {errors.plateNumber && <span className="error">{errors.plateNumber}</span>}
                 </div>
                 <div>
-                    <label htmlFor="buyerName">Buyer Name:</label>
+                    <label htmlFor="price">Price:</label>
+                    <input type="number" id="price" name="price" min="1" step="1" value={price} readOnly />
+                    {errors.price && <span className="error">{errors.price}</span>}
+                </div>
+                <div>
+                    <label htmlFor="buyerName">First Name:</label>
                     <input type="text" id="buyerName" name="buyerName" value={buyerName}
                            onChange={event => setBuyerName(event.target.value)}/>
                     {errors.buyerName && <span className="error">{errors.buyerName}</span>}
@@ -148,13 +130,6 @@ function PurchaseComponent() {
                     <input type="text" id="vehicleType" name="vehicleType" value={vehicleType}
                            onChange={event => setVehicleType(event.target.value)}/>
                     {errors.vehicleType && <span className="error">{errors.vehicleType}</span>}
-                </div>
-
-                <div>
-                    <label htmlFor="price">Price:</label>
-                    <input type="number" id="price" name="price" min="1" step="1" value={price}
-                           onChange={event => setPrice(event.target.value)}/>
-                    {errors.price && <span className="error">{errors.price}</span>}
                 </div>
 
                 <button type="submit">Submit</button>

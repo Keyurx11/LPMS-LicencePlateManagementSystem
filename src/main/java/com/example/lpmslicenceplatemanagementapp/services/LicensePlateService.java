@@ -122,6 +122,7 @@ public class LicensePlateService {
         return response;
     }
 
+
     public String generateRandomString(int length) {
         String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         StringBuilder sb = new StringBuilder(length);
@@ -132,4 +133,38 @@ public class LicensePlateService {
         }
         return sb.toString();
     }
+
+    public boolean containsWildcard(String plateNumber) {
+        return plateNumber.contains("*");
+    }
+
+    public String generateRandomLicensePlate(String pattern) {
+        Random random = new Random();
+        StringBuilder sb = new StringBuilder(pattern.length());
+
+        for (int i = 0; i < pattern.length(); i++) {
+            char c = pattern.charAt(i);
+            if (c == '*') {
+                sb.append((char) ('A' + random.nextInt(26)));
+            } else {
+                sb.append(c);
+            }
+        }
+
+        return sb.toString();
+    }
+
+    public List<Map<String, Object>> generateRandomLicensePlates(String pattern, int numPlates) {
+        List<Map<String, Object>> response = new ArrayList<>();
+
+        for (int i = 0; i < numPlates; i++) {
+            String plateNumber = generateRandomLicensePlate(pattern);
+            Map<String, Object> plateInfo = generateLicensePlateResponse(plateNumber);
+            response.add(plateInfo);
+        }
+
+        return response;
+    }
+
+
 }
