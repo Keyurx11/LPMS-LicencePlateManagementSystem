@@ -2,6 +2,7 @@ package com.example.lpmslicenceplatemanagementapp.entities;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 
 import java.util.Date;
 
@@ -13,23 +14,39 @@ public class OwnershipLog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "plate_number")
+    @NotBlank
+    @Size(min= 2, max = 7)
+    @Pattern(regexp = "^[a-zA-Z0-9]*$")
     private String plateNumber;
 
-    @Column(name = "buyer_id")
+    @NotNull
     private Long buyerId;
 
-    @Column(name = "purchase_date")
+    @NotNull
     private Date purchaseDate;
 
-    @Column(name = "vehicle_make")
+    @Min(1)
+    private int price;
+
+    @NotBlank
+    @Size(max = 50)
     private String vehicleMake;
 
-    @Column(name = "vehicle_model")
+    @NotBlank
+    @Size(max = 50)
     private String vehicleModel;
 
-    @Column(name = "vehicle_type")
+    @NotBlank
+    @Size(max = 50)
     private String vehicleType;
+
+    public int getPrice() {
+        return price;
+    }
+
+    public void setPrice(int price) {
+        this.price = price;
+    }
 
     public Long getId() {
         return id;

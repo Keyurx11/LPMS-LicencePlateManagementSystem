@@ -10,8 +10,8 @@ public class RestConfig implements RepositoryRestConfigurer {
     public void configureRepositoryRestConfiguration(RepositoryRestConfiguration config, CorsRegistry cors) {
         config.exposeIdsFor(LicensePlate.class);
         config.exposeIdsFor(OwnershipLog.class);
-        config.exposeIdsFor(LicensePlatePurchaseRequest.class);
         config.exposeIdsFor(User.class);
-        config.exposeIdsFor(ApiResponse.class);
+
+        cors.addMapping("/**").allowedOrigins("*").allowedMethods("GET", "POST", "PUT", "DELETE");
     }
 }

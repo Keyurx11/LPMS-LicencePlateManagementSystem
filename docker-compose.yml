@@ -28,5 +28,23 @@ services:
     ports:
       - '8080:8080'
 
+  node-proxy:
+    build:
+      context: ./node-proxy/
+      dockerfile: Dockerfile
+    ports:
+      - '3001:3001'
+    depends_on:
+      - app
+
+  react-client:
+    build:
+      context: ./client/
+      dockerfile: Dockerfile
+    ports:
+      - '3000:3000'
+    depends_on:
+      - node-proxy
+
 volumes:
   postgres-data:

@@ -7,6 +7,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface OwnershipLogRepository extends CrudRepository<OwnershipLog, Long> {
 
-    // add any custom query methods here
 
 }

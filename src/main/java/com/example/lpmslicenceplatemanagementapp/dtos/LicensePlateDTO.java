@@ -35,6 +35,10 @@ public class LicensePlateDTO {
         this.vehicleType = vehicleType;
     }
 
+    public LicensePlateDTO() {
+
+    }
+
     public String getLastName() {
         return lastName;
     }
@@ -114,13 +118,5 @@ public class LicensePlateDTO {
     public void setPrice(int price) {
         this.price = price;
     }
-
-//    public Long getBuyerId() {
-//        return buyerId;
-//    }
-//
-//    public void setBuyerId(Long buyerId) {
-//        this.buyerId = buyerId;
-//    }
 
 }

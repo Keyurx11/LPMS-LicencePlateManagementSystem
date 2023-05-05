@@ -6,13 +6,11 @@ import com.example.lpmslicenceplatemanagementapp.entities.User;
 import com.example.lpmslicenceplatemanagementapp.repositories.LicensePlateRepository;
 import com.example.lpmslicenceplatemanagementapp.repositories.OwnershipLogRepository;
 
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 
 @Service
 public class LicensePlateService {
@@ -30,14 +28,20 @@ public class LicensePlateService {
         return licensePlateRepository.findByAvailableTrue();
     }
 
-    public int generateRandomPrice() {
-        Random random = new Random();
-        int price = random.nextInt(51) + 10; // generates a random number between 10 and 60
-        while (price % 5 != 0) {
-            price++; // ensures price is divisible by 5
+    public int generateRandomPrice(String plateNumber) {
+        int length = plateNumber.length();
+        if (length == 7) {
+            return 250;
+        } else {
+            int price = 250;
+            int lengthDifference = 7 - length;
+            for (int i = 0; i < lengthDifference; i++) {
+                price += 100;
+            }
+            return price;
         }
-        return price;
     }
+
 
     public LicensePlate getLicensePlateByNumber(String number) {
         Optional<LicensePlate> optionalLicensePlate = licensePlateRepository.findByPlateID(number);

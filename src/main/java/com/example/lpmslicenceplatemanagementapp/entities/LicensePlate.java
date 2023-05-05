@@ -2,34 +2,47 @@ package com.example.lpmslicenceplatemanagementapp.entities;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 
 @Entity
 @Table(name = "license_plates")
 public class LicensePlate {
 
     @Id
-    @Column(name = "number_plate")
+    @NotBlank
+    @Size(min = 2, max = 7)
     private String plateID;
 
+    @NotNull
     private boolean available;
 
+    @Min(1)
     private int price;
 
-    @Column(name = "buyer_id")
+    @NotNull
     private Long buyerId;
 
-    @Column(name = "first_name")
+    @NotBlank
+    @Size(max = 50)
     private String firstName;
 
-    @Column(name = "last_name")
+    @NotBlank
+    @Size(max = 50)
     private String lastName;
 
+    @Email
     private String email;
 
     public LicensePlate(String plateID, Long buyerId) {
+        if (plateID.length() < 2 || plateID.length() > 7) {
+            throw new IllegalArgumentException("Plate ID must be between 2 and 7 characters long.");
+        }
+        if (buyerId == null) {
+            throw new IllegalArgumentException("Buyer ID cannot be null.");
+        }
         this.plateID = plateID;
         this.buyerId = buyerId;
-        this.available = true; //ture by default
+        this.available = true; // true by default
     }
 
     public LicensePlate() {
