@@ -10,4 +10,4 @@ COPY target/LPMS-LicencePlateManagementApp-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8080
 
 # Set the command to run when the container starts
-CMD ["java", "-jar", "demo.jar"]
+CMD ["java", "-jar", "app.jar"]

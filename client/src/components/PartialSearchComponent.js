@@ -72,19 +72,13 @@ function PartialSearchComponent() {
                             <p>Price: {result.price}</p>
                         )}
                         <Link
-                            to={`/purchase/${result.plateID || result.plateNumber}`}
+                            to={{
+                                pathname: `/purchase/${result.plateID || result.plateNumber}`,
+                                search: `?plateNumber=${result.plateID || result.plateNumber}&price=${result.price}`,
+                            }}
                             disabled={result.available === false || result.status !== 'available'}
                         >
-                            <button
-                                onClick={() =>
-                                    navigate(`/purchase/${result.plateID || result.plateNumber}`, {
-                                        state: {
-                                            plateNumber: result.plateID || result.plateNumber,
-                                            price: result.price,
-                                        },
-                                    })
-                                }
-                            >
+                            <button>
                                 Purchase
                             </button>
                         </Link>

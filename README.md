@@ -2,6 +2,8 @@
 
 The Licence Plate Management System App is a Spring Boot application that provides an API for managing custom license plates. Users can purchase, search, and view the details of available license plates. The application validates the license plates based on their format and checks for inappropriate words. It also allows registration of new users.
 
+### Link to video demo - https://youtu.be/WIb0jMb4p_k
+
 ## Features
 
 1. Purchase license plates with valid formats and without inappropriate words.
