@@ -1,5 +1,6 @@
 package com.example.lpmslicenceplatemanagementapp.services;
 
+import com.example.lpmslicenceplatemanagementapp.dtos.LicensePlateDTO;
 import com.example.lpmslicenceplatemanagementapp.dtos.UserDTO;
 import com.example.lpmslicenceplatemanagementapp.entities.LicensePlate;
 import com.example.lpmslicenceplatemanagementapp.entities.User;
@@ -37,10 +38,16 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public void assignLicensePlate(User user, LicensePlate licensePlate) {
-        licensePlate.setAvailable(false);
-        licensePlate.setBuyerId(user.getUserId());
-        licensePlateRepository.save(licensePlate);
+    public User createNewUser(LicensePlateDTO licensePlateDTO) {
+        User newUser = new User();
+        newUser.setFirstName(licensePlateDTO.getBuyerName());
+        newUser.setLastName(licensePlateDTO.getLastName());
+        newUser.setEmail(licensePlateDTO.getEmail());
+        newUser.setPhone(licensePlateDTO.getPhone());
+        newUser.setVehicleMake(licensePlateDTO.getVehicleMake());
+        newUser.setVehicleModel(licensePlateDTO.getVehicleModel());
+        newUser.setVehicleType(licensePlateDTO.getVehicleType());
+        return userRepository.save(newUser);
     }
 
 

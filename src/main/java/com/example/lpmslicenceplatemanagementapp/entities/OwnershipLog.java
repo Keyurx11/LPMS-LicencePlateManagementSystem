@@ -25,7 +25,7 @@ public class OwnershipLog {
     @NotNull
     private Date purchaseDate;
 
-    @Min(1)
+    @Min(value = 1, message = "Price must be greater than or equal to 1")
     private int price;
 
     @NotBlank
@@ -39,6 +39,7 @@ public class OwnershipLog {
     @NotBlank
     @Size(max = 50)
     private String vehicleType;
+
 
     public int getPrice() {
         return price;

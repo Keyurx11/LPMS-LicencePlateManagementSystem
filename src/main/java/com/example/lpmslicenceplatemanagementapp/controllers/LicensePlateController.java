@@ -26,23 +26,16 @@ public class LicensePlateController {
         this.userService = userService;
     }
 
-    @Autowired
-    private LicensePlateRepository licensePlateRepository;
-
-    @Autowired
-    private OwnershipLogService ownershipLogService;
-
     @PostMapping("/purchase")
     public ResponseEntity<String> purchaseLicensePlate(@RequestBody LicensePlateDTO licensePlateDTO) {
         String plateNumber = licensePlateDTO.getPlateNumber();
-
 
         // Validate plate number format - checks 3 formats XX99XXX, X000XXX and XX11XX
         if (!plateNumber.matches("[A-Z]{2}[0-9]{2}[A-Z]{3}|[A-Z]{1,3}[0-9]{1,4}[A-Z]{1,3}")) {
             return ResponseEntity.badRequest().body("Invalid plate number format.");
         }
 
-        if (containsInappropriateWords(plateNumber)) {
+        if (licensePlateService.containsInappropriateWords(plateNumber)) {
             return ResponseEntity.badRequest().body("The provided plate number contains inappropriate words.");
         }
 
@@ -58,65 +51,62 @@ public class LicensePlateController {
         }
 
         // Create a new user or retrieve an existing user
-        User buyer = userService.getUserByName(licensePlateDTO.getBuyerName());
-        if (buyer == null) {
-            buyer = new User();
-            buyer.setFirstName(licensePlateDTO.getBuyerName());
-            buyer.setLastName(licensePlateDTO.getLastName());
-            buyer.setEmail(licensePlateDTO.getEmail());
-            buyer.setPhone(licensePlateDTO.getPhone());
-            buyer.setVehicleMake(licensePlateDTO.getVehicleMake());
-            buyer.setVehicleModel(licensePlateDTO.getVehicleModel());
-            buyer.setVehicleType(licensePlateDTO.getVehicleType());
-            buyer = userService.saveUser(buyer);
+        User buyer = userService.createNewUser(licensePlateDTO);
 
+        // Purchase the license plate
+        boolean purchaseSuccess = licensePlateService.purchaseLicensePlate(buyer, plateNumber, licensePlateDTO.getPrice());
+
+        if (purchaseSuccess) {
+            return ResponseEntity.ok("License plate purchased successfully!");
+        } else {
+            return ResponseEntity.badRequest().body("License plate purchase failed.");
         }
-
-        // Create a new license plate and save it to the database
-        LicensePlate licensePlate = new LicensePlate(plateNumber, buyer.getUserId());
-        licensePlate.setPrice(licensePlateDTO.getPrice());
-        licensePlate.setEmail(buyer.getEmail());
-        licensePlate.setFirstName(buyer.getFirstName());
-        licensePlate.setLastName(buyer.getLastName());
-        licensePlate.setAvailable(false);
-        licensePlateService.saveLicensePlate(licensePlate);
-        // Log the ownership change with the price
-        ownershipLogService.logOwnershipChange(plateNumber, buyer.getUserId(), licensePlateDTO.getVehicleMake(), licensePlateDTO.getVehicleModel(), licensePlateDTO.getVehicleType(), licensePlateDTO.getPrice());
-
-        return ResponseEntity.ok("License plate purchased successfully!");
     }
-
 
     @GetMapping("/license-plates/{plateNumber}")
     public ResponseEntity<?> getLicensePlateByNumber(@PathVariable String plateNumber) {
+        // Get the license plate by number
         LicensePlate licensePlate = licensePlateService.getLicensePlateByNumber(plateNumber);
 
+        // If the license plate doesn't exist, return a response with information about generating a new one
         if (licensePlate == null) {
-            return ResponseEntity.ok(generateLicensePlateResponse(plateNumber));
+            return ResponseEntity.ok(licensePlateService.generateLicensePlateResponse(plateNumber));
         } else {
+            // If the license plate exists, return the license plate object
             return ResponseEntity.ok(licensePlate);
         }
     }
 
     @GetMapping("/license-plates/search/{plateNumber}")
-    public ResponseEntity<?> getLicense(@PathVariable String plateNumber) {
-        if (containsInappropriateWords(plateNumber)) {
+    public ResponseEntity<?> searchLicensePlatesByPattern(@PathVariable String plateNumber) {
+        // Check if the plate number contains inappropriate words
+        if (licensePlateService.containsInappropriateWords(plateNumber)) {
             return ResponseEntity.badRequest().body("The provided plate number contains inappropriate words.");
         }
 
+        // Convert the input to uppercase
         String input = plateNumber.toUpperCase();
 
+        // Convert the input to a regex pattern with wildcard characters
         String regexPattern = input.replaceAll("\\*", "\\\\w");
 
+        // List to store the response license plates
         List<Map<String, Object>> response = new ArrayList<>();
 
-        // Generate random license plates based on the input pattern
         int numGenerated = 0;
         while (numGenerated < 10) {
-            String randomString = generateRandomString(input.length());
+            // Generate a random string with the same length as the input
+            String randomString = licensePlateService.generateRandomString(input.length());
+
+            // Check if a license plate already exists with this number
             LicensePlate licensePlate = licensePlateService.getLicensePlateByNumber(randomString);
+
+            // If the license plate doesn't exist, add it to the response list
             if (licensePlate == null) {
-                Map<String, Object> plateInfo = generateLicensePlateResponse(randomString);
+                // Generate information about the license plate for the response
+                Map<String, Object> plateInfo = licensePlateService.generateLicensePlateResponse(randomString);
+
+                // If the license plate is available, add it to the response list and increment the counter
                 if (plateInfo.containsKey("status") && plateInfo.get("status").equals("available")) {
                     response.add(plateInfo);
                     numGenerated++;
@@ -124,52 +114,8 @@ public class LicensePlateController {
             }
         }
 
+        // Return the list of generated license plates
         return ResponseEntity.ok(response);
-    }
-
-
-    private Map<String, Object> generateLicensePlateResponse(String plateNumber) {
-        // Validate plate number format
-        if (!plateNumber.matches("[A-Z]{2}[0-9]{2}[A-Z]{3}|[A-Z]{1,3}[0-9]{1,4}[A-Z]{1,3}")) {
-            return Collections.singletonMap("message", "Invalid plate number format.");
-        }
-
-        int price = licensePlateService.generateRandomPrice(plateNumber);
-
-        Map<String, Object> response = new LinkedHashMap<>();
-        response.put("plateNumber", plateNumber);
-        response.put("status", "available");
-        response.put("price", price);
-        response.put("message", "License plate is available for purchase");
-        return response;
-    }
-
-    private String generateRandomString(int length) {
-        String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        StringBuilder sb = new StringBuilder(length);
-        Random random = new Random();
-        for (int i = 0; i < length; i++) {
-            int index = random.nextInt(alphabet.length());
-            sb.append(alphabet.charAt(index));
-        }
-        return sb.toString();
-    }
-
-
-    public boolean containsInappropriateWords(String plateNumber) {
-        // Just for demonstration so small list, can also be done by creating insert script and checing with db
-        List<String> inappropriateWords = Arrays.asList("FF23GOT", "NG23GRR", "N23GER", "FF23KED", "NN23GAA", "N23GGA", "FF23KER",
-                "NN23GAR", "N23GGR", "FK23RUS", "NN23GAS", "N23GGR", "FK23UKR", "NN23GAZ",
-                "N23GRO", "FK23VAJ", "NN23GER", "N23GRR", "GA23EDD", "NN23GGA", "N23GRS",
-                "GA23LOW", "NN23GGR", "N23GRZ", "GA23NJA", "PIG");
-        String plateNumberUpperCase = plateNumber.toUpperCase();
-
-        for (String word : inappropriateWords) {
-            if (plateNumberUpperCase.contains(word)) {
-                return true;
-            }
-        }
-        return false;
     }
 
 }
